@@ -1,0 +1,247 @@
+
+    <div class="container">
+
+        <div class="row">
+
+            <div class="col-lg-12">
+                <h1 class="page-header">Hotels
+                    <small>Troba els millors hotels</small>
+                </h1>
+                <ol class="breadcrumb">
+                    <li><a href="{APP_W}/index">Home</a></li>
+                    <li class="active">Serveis</li>
+                    <li class="active">Hotels</li>
+                </ol>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-8">
+
+                <h1><a>Realitza la teva busca d'hotels</a>
+                </h1>
+                
+                <a>
+                    <img src="http://www.huelvaholidays.es/archives/desembocadura-intermedio.jpg" class="img-responsive">
+                </a>
+                <hr>
+                <table class="bus" cellpadding="5" cellspacing="10">
+                <form method="post">
+                    <tr>
+                        <th><h3>Escull ciutat</h3></th>
+                        <td>
+                            <select id="ciutat">
+                                <option>Selecciona ciutat...</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><h3>Places a reservar</h3></th>
+                        <td>
+                            <input id="places" type="number" value="1" min="1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><h3>Categoria</h3></th>
+                        <td>
+                            Indiferent<input type="radio" name="categoria" value="0" checked />
+                            1<input type="radio" name="categoria" value="1" />
+                            2<input type="radio" name="categoria" value="2" />
+                            3<input type="radio" name="categoria" value="3" />
+                            4<input type="radio" name="categoria" value="4" />
+                            5<input type="radio" name="categoria" value="5" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><h3>Preu per plaça</h3></th>
+                        <td>
+                            Entre  <input id="p_min" type="number" value="0" min="0" /> €  i  
+                            <input id="p_max" type="number" value="99999" min="0" /> €
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><input id="busca" type="button" value="Busca" class="imgbtn"></td>
+                    </tr>
+                </form>
+                </table>
+                <div id="resultats"></div>
+                <div id="mapa"></div><span id="tancar">X</span>
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="well">
+                    <h4>Busca a la web</h4>
+                    <div class="input-group">
+                        <input type="text" class="form-control">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button"><i class="fa fa-search"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <!-- /input-group -->
+                </div>
+                <!-- /well -->
+                <div class="well">
+                    <h4>Temes d'interés</h4>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <ul class="list-unstyled">
+                                <li><a href="#">Barcelona</a>
+                                </li>
+                                <li><a href="#">Madrid</a>
+                                </li>
+                                <li><a href="#">Galícia</a>
+                                </li>
+                                <li><a href="#">Valencia</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-6">
+                            <ul class="list-unstyled">
+                                <li><a href="#">Vols barats</a>
+                                </li>
+                                <li><a href="#">Plans familiars</a>
+                                </li>
+                                <li><a href="#">Plans en parella</a>
+                                </li>
+                                <li><a href="#">Vols low cost</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /well -->
+                <div class="well">
+                    <h4>Contacte</h4>
+                    <p>Troves alguna cosa a faltar? Digue'ns-ho al nostre formulari de <a href='{APP_W}/contact'>contacte</a></p>
+                </div>
+                <div class="well">
+                    <h4>Noticies sobre el clima</h4>
+                    <div id="rss">
+                        <load>Carregant...</load>
+                    </div>
+                </div>
+                <!-- /well -->
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container -->
+    
+    <script>
+        var ciutat = "";
+        var categoria = 0;
+        var places = 1;
+        var preu_min = 0;
+        var preu_max = 99999;
+
+        $.get('Ajax/ciutats',function(resultado){
+                $("#ciutat").empty();
+                $("#ciutat").append(resultado);
+        });
+
+        $("#ciutat").change(function(){
+            ciutat = $(this).val();
+        });
+
+        $("#places").change(function() {
+            places = $(this).val();
+        });
+        
+        $("input[type=radio]").click(function() {
+            categoria = $(this).val();
+        });
+        
+        $("#p_min").change(function() {
+            preu_min = $(this).val();
+        });
+        
+        $("#p_max").change(function() {
+            preu_max = $(this).val();
+        });
+        
+        $("#busca").click(function() {
+           $.ajax({
+                type:"POST",
+                url:"{APP_W}/Ajax/buscar_hotels",
+                data: {ci:ciutat,ca:categoria,pl:places,pmi:preu_min,pma:preu_max}
+                })
+                .done(function( msg ) {
+                    $("#resultats").html(msg);	
+            });
+        });
+        
+        function contractar(id_servei) {
+            $.ajax({
+                type:"POST",
+                url:"{APP_W}/Ajax/contractar",
+
+                data: {id_serv:id_servei, pl:places}
+                })
+                .done(function( msg ) {
+                    $("#opc_" + id_servei).children("input").remove();
+                    $("#opc_" + id_servei).html($("#opc_" + id_servei).html() + "<h4>Reservat!</h4>\n\
+                                <a class='eliminar' onClick='elimina(" + id_servei + ")'>[eliminar]</a>");
+            });
+        }
+        
+        function elimina(id_servei) {
+            $.ajax({
+                type:"POST",
+                url:"{APP_W}/Ajax/eliminar_servei2",
+                data: {id_serv:id_servei}
+                })
+                .done(function( msg ) {
+                    $("#opc_" + id_servei).children("h4").remove();
+                    $("#opc_" + id_servei).children("a").remove();
+                    
+                    $("#opc_" + id_servei).html($("#opc_" + id_servei).html() + "<input type='button' value='Contractar'/>");
+                });
+        } 
+         
+         
+        $('#mapa').gmap3({
+            map:{
+                options:{
+
+                        zoom:12,
+                        minZoom: 1,
+                        maxZoom: 25,
+                        navigationControl: true,
+                        scrollwheel: true,
+                        streetViewControl: true,
+                        zoomControl: true
+                }
+            }
+        });
+        
+                  
+        function mostrar_mapa(lat,lng) {
+            $('#mapa').gmap3({
+                marker:{latLng:[lat,lng]}
+            });
+            
+            $("#mapa").css("position","fixed");
+            
+            $("#mapa").show(1500, function(){
+                $('#mapa').gmap3({trigger:"resize",
+                map:{
+                   options:{
+                            center:[lat,lng]
+                 }
+                }});
+            });
+            $("#tancar").show();
+            
+        }
+        
+        $("#tancar").click(function(){
+            $("#tancar").hide();
+            $("#mapa").hide(1500);
+        });
+        
+        
+    </script>

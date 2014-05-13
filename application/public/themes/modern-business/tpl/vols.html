@@ -1,0 +1,190 @@
+
+    <div class="container">
+
+        <div class="row">
+
+            <div class="col-lg-12">
+                <h1 class="page-header">Vols
+                    <small>Troba els vols més económics</small>
+                </h1>
+                <ol class="breadcrumb">
+                    <li><a href="{APP_W}/index">Home</a></li>
+                    <li class="active">Serveis</li>
+                    <li class="active">Vols</li>
+                </ol>
+            </div>
+
+        </div>
+        <div class="row">
+
+            <div class="col-lg-8">
+
+                <h1><a>Realitza la teva busca de vols</a>
+                </h1>
+                
+                <a>
+                    <img src="http://destinoviajar.com/wp-content/uploads/2012/12/airberlin-750x200.jpg" class="img-responsive">
+                </a>
+                <hr>
+                
+                <table class="bus" cellpadding="5" cellspacing="10">
+                <form method="post">
+                    <tr>
+                        <th><h3>Ciutat de destí</h3></th>
+                        <td>
+                            <select id="origen">
+                                <option>Selecciona aeroport d'origen...</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><h3>Ciutat d'origen</h3></th>
+                        <td>
+                            <select id="desti">
+                                <option>Selecciona destí...</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><h3>Places a reservar</h3></th>
+                        <td>
+                            <input id="places" type="number" value="1" min="1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><h3>Preu per plaça</h3></th>
+                        <td>
+                            Entre  <input id="p_min" type="number" value="0" min="0" /> €  i  
+                            <input id="p_max" type="number" value="99999" min="0" /> €
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><input id="busca" type="button" value="Busca" class="imgbtn"></td>
+                    </tr>
+                </form>
+                </table>
+                <div id="resultats"></div>
+                
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="well">
+                    <h4>Busca a la web</h4>
+                    <div class="input-group">
+                        <input type="text" class="form-control">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button"><i class="fa fa-search"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <!-- /input-group -->
+                </div>
+                <!-- /well -->
+                <div class="well">
+                    <h4>Temes d'interés</h4>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <ul class="list-unstyled">
+                                <li><a href="#">Barcelona</a>
+                                </li>
+                                <li><a href="#">Madrid</a>
+                                </li>
+                                <li><a href="#">Galícia</a>
+                                </li>
+                                <li><a href="#">Valencia</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-6">
+                            <ul class="list-unstyled">
+                                <li><a href="#">Vols barats</a>
+                                </li>
+                                <li><a href="#">Plans familiars</a>
+                                </li>
+                                <li><a href="#">Plans en parella</a>
+                                </li>
+                                <li><a href="#">Vols low cost</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /well -->
+                <div class="well">
+                    <h4>Contacte</h4>
+                    <p>Troves alguna cosa a faltar? Digue'ns-ho al nostre formulari de <a href='{APP_W}/contact'>contacte</a></p>
+                </div>
+                <!-- /well -->
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container -->
+    
+    <script>
+        var origen = "";
+        var desti = "";
+        var places = 1;
+        var preu_min = 0;
+        var preu_max = 99999;
+        
+        $.get('Ajax/origen',function(resultado){
+            $("#origen").empty();
+            $("#origen").append(resultado);
+        });
+       
+       $("#origen").change(function() {
+                origen = $(this).val();
+
+                $.ajax({
+                    type:"POST",
+                    url:"Ajax/desti",
+                    data: {o:origen}
+                })
+                .done(function( msg ) {
+                    $("#desti").html(msg);	
+                });
+        });
+        
+        $("#desti").change(function(){
+            desti = $(this).val();
+        });
+        
+        $("#places").change(function() {
+            places = $(this).val();
+        });
+        
+        $("#p_min").change(function() {
+            preu_min = $(this).val();
+        });
+        
+        $("#p_max").change(function() {
+            preu_max = $(this).val();
+        });
+        
+        $("#busca").click(function() {
+           $.ajax({
+                type:"POST",
+                url:"{APP_W}/Ajax/buscar_vols",
+                data: {o:origen,d:desti,pl:places,pmi:preu_min,pma:preu_max}
+                })
+                .done(function( msg ) {
+                    $("#resultats").html(msg);
+            });
+        });
+        
+        function contractar(id_servei) {
+            $.ajax({
+                type:"POST",
+                url:"{APP_W}/Ajax/contractar",
+
+                data: {id_serv:id_servei, pl:places}
+                })
+                .done(function( msg ) {
+                    $("#opc_" + id_servei).children("input").remove();
+                    $("#opc_" + id_servei).html($("#opc_" + id_servei).html() + "<h4>Reservat!</h4>\n\
+                                <a class='eliminar' onClick='elimina(" + id_servei + ")'>[eliminar]</a>");
+            });
+        }
+    </script>

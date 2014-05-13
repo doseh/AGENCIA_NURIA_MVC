@@ -1,0 +1,181 @@
+
+    <div class="container">
+
+        <div class="row">
+
+            <div class="col-lg-12">
+                <h1 class="page-header">Perfil
+                    <small>Consulta les teves reserves</small>
+                </h1>
+                <ol class="breadcrumb">
+                    <li><a href="{APP_W}/index">Home</a></li>
+                    <li class="active">Perfil</li>
+                </ol>
+            </div>
+
+        </div>
+        <section>
+            <article>
+                <div id="res_fle0"><h3>Reserves anteriors</h3><div class="fletxa derecha"></div></div>
+                <div id="r_tancada">
+                    <!--<span>Encara no s'ha realitzat cap reserva</span>-->
+                </div>
+            </article>
+            <article>
+                <div id="res_fle"><h3>Reserva pendent de pagament</h3><div class="fletxa derecha"></div></div>
+                <div id="r_oberta">
+                    <!--<span>No hi ha cap reserva pendent</span>-->
+                </div>
+                <div id="pagament">
+                    <h4>Escull métode de pagament</h4>
+                    <select>
+                        <option id="1">Efectiu</option>
+                        <option id="2">Transferència</option>
+                        <option id="3">Targeta</option>
+                        <option id="4">PayPal</option>
+                    </select>
+                    <input type="button" value="Pagar" id="pagar" />
+                </div>
+            </article>
+            <article id="administrar">
+            </article>
+            
+        </section>
+
+    </div>
+    <!-- /.container -->
+    
+    <script>
+        var metode = 1;
+        $("#r_tancada").hide();
+        $("#r_oberta").show();
+        $("#admin").show();
+        
+        $("#res_fle .fletxa").removeClass("derecha");
+        $("#res_fle .fletxa").addClass("abajo");
+        
+        $.ajax({
+            type:"POST",
+            url:"{APP_W}/Ajax/mostrar_reserves_obertes"
+            })
+            .done(function( msg ) {
+                $("#r_oberta").html(msg);
+            });
+        
+        $.ajax({
+            type:"POST",
+            url:"{APP_W}/Ajax/mostrar_reserves_tancades"
+            })
+            .done(function( msg ) {
+                $("#r_tancada").html(msg);
+            });
+            
+        $.ajax({
+            type:"POST",
+            url:"{APP_W}/Ajax/mostrar_administracio"
+            })
+            .done(function( msg ) {
+                $("#administrar").html(msg);
+                        
+            }); 
+            
+       function mostrar_usuaris() {  
+            $.ajax({
+                type:"POST",
+                url:"{APP_W}/Ajax/mostrar_usuaris"
+                })
+                .done(function( msg ) {
+                    $("#m_usuaris").html(msg);
+            });
+       }
+            
+        function elimina(id_servei) {
+            $.ajax({
+               type:"POST",
+               url:"{APP_W}/Ajax/eliminar_servei2",
+               data: {id_serv:id_servei}
+               })
+               .done(function( msg ) {
+                   $('#r_oberta').html(msg);
+               });
+            
+        } 
+         
+        function cancela() {
+           $.ajax({
+               type:"POST",
+               url:"{APP_W}/Ajax/cancelar_reserva",
+               data: {}
+               })
+               .done(function( msg ) {
+                   $('#r_oberta').html(msg);
+               });
+        }
+         
+        function mostrar_pagar() {
+            $("#pagament").show();
+        }
+        
+        
+        $("select").change(function(){
+            metode = $(this).children(":selected").attr("id");
+        });
+        
+        
+        $("#pagar").click(function(){
+        
+            $.ajax({
+               type:"POST",
+               url:"{APP_W}/Ajax/pagar_reserva",
+               data: {me:metode}
+               })
+               .done(function( msg ) {
+                   $('#r_oberta').html("<span>No hi ha cap reserva pendent</span>");
+                   $("#pagament").hide();
+                   $('#r_tancada').html(msg);
+                   $("#res_fle").click();
+                   $("#r_tancada").slideDown();
+               });
+        
+        });
+        
+        $("#res_fle").click(function(){
+            if ( ($("#r_oberta").css("display")) == "none" ) {
+                $("#r_oberta").slideDown();
+                $("#res_fle .fletxa").removeClass("derecha");
+                $("#res_fle .fletxa").addClass("abajo");
+            }
+            else {
+                $("#r_oberta").slideUp();
+                $("#res_fle .fletxa").removeClass("abajo");
+                $("#res_fle .fletxa").addClass("derecha");
+                $("#pagament").slideUp();
+            }
+        });
+        
+        $("#res_fle0").click(function(){
+            if ( ($("#r_tancada").css("display")) == "none" ) {
+                $("#r_tancada").slideDown();
+                $("#res_fle0 .fletxa").removeClass("derecha");
+                $("#res_fle0 .fletxa").addClass("abajo");
+            }
+            else {
+                $("#r_tancada").slideUp();
+                $("#res_fle0 .fletxa").removeClass("abajo");
+                $("#res_fle0 .fletxa").addClass("derecha");
+            }
+        });
+        
+        function eliminar_usuari(id_usuari) {
+           $.ajax({
+               type:"POST",
+               url:"{APP_W}/Ajax/eliminar_usuari",
+               data: {id:id_usuari}
+               })
+               .done(function( msg ) {
+                   $('#m_usuaris').html(msg);
+                   $('#m_admin').show();
+               });
+        }
+        
+    </script>
